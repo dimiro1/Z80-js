@@ -1,5 +1,5 @@
 /*!
- * Javascript Z80 Emulator
+ * A Javascript/Typescript Z80 Emulator
  * Copyright (C) 2015  Claudemiro Alves Feitosa Neto <dimiro1@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -114,21 +114,6 @@ namespace Z80 {
 	}
 
 	/**
-	 * Exception thrown under various CPU states that may need exception processing
-	 */
-	class ProcessorException extends Error {
-
-		/**
-		 * Known exception for the Z80 emulator
-		 *
-		 * @param message Emulator exception message
-		 */
-		constructor(message:string) {
-			super(message)
-		}
-	}
-
-	/**
 	 * Z80 processor implementation
 	 */
 	export default class Z80 implements CPU {
@@ -215,22 +200,22 @@ namespace Z80 {
 		private isHalted:boolean;
 
 		private OPCODE_T_STATES:number[] = [
-			4, 16, 7, 6, 4, 4, 7, 4, 4, 11, 7, 6, 4, 4, 7, 4, // 0
-			0, 16, 7, 6, 4, 4, 7, 4, 12, 11, 7, 6, 4, 4, 7, 4, // 10
-			0, 16, 7, 6, 4, 4, 7, 4, 0, 11, 7, 6, 4, 4, 7, 4, // 20
-			0, 16, 7, 6, 4, 4, 7, 4, 0, 11, 7, 6, 4, 4, 7, 4, // 30
-			4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4, // 40
-			4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4, // 50
-			4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4, // 60
-			7, 7, 7, 7, 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4, // 70
-			4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4, // 80
-			4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4, // 90
-			4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4, // A0
-			4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4, // B0
-			0, 10, 0, 0, 0, 11, 7, 0, 0, 0, 0, 0, 0, 0, 7, 0, // C0
-			0, 10, 0, 11, 0, 11, 7, 0, 0, 4, 0, 11, 0, 4, 7, 0,// D0
-			0, 10, 0, 19, 0, 11, 7, 0, 0, 4, 0, 4, 0, 0, 7, 0, // E0
-			0, 4, 0, 4, 0, 11, 7, 0, 0, 0, 0, 0, 0, 4, 7, 0 	// F0
+			4, 16, 7,  6, 4,  4, 7, 4,  4, 11, 7,  6, 4, 4, 7, 4, //  0
+			0, 16, 7,  6, 4,  4, 7, 4, 12, 11, 7,  6, 4, 4, 7, 4, // 10
+			0, 16, 7,  6, 4,  4, 7, 4,  0, 11, 7,  6, 4, 4, 7, 4, // 20
+			0, 16, 7,  6, 4,  4, 7, 4,  0, 11, 7,  6, 4, 4, 7, 4, // 30
+			4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // 40
+			4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // 50
+			4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // 60
+			7,  7, 7,  7, 7,  7, 4, 7,  4,  4, 4,  4, 4, 4, 7, 4, // 70
+			4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // 80
+			4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // 90
+			4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // A0
+			4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // B0
+			0, 10, 0,  0, 0, 11, 7, 0,  0,  0, 0,  0, 0, 0, 7, 0, // C0
+			0, 10, 0, 11, 0, 11, 7, 0,  0,  4, 0, 11, 0, 4, 7, 0, // D0
+			0, 10, 0, 19, 0, 11, 7, 0,  0,  4, 0,  4, 0, 0, 7, 0, // E0
+			0,  4, 0,  4, 0, 11, 7, 0,  0,  0, 0,  0, 0, 4, 7, 0  // F0
 		];
 
 		/**
@@ -323,14 +308,14 @@ namespace Z80 {
 		 */
 		get f():number {
 			return (
-				(this.flag_s << 0x80) |
-				(this.flag_z << 0x40) |
-				(this.flag_5 << 0x20) |
-				(this.flag_h << 0x10) |
-				(this.flag_3 << 0x08) |
+				(this.flag_s  << 0x80) |
+				(this.flag_z  << 0x40) |
+				(this.flag_5  << 0x20) |
+				(this.flag_h  << 0x10) |
+				(this.flag_3  << 0x08) |
 				(this.flag_pv << 0x04) |
-				(this.flag_n << 0x02) |
-				(this.flag_c << 0x01)
+				(this.flag_n  << 0x02) |
+				(this.flag_c  << 0x01)
 			);
 		}
 
@@ -343,14 +328,14 @@ namespace Z80 {
 		 */
 		set f(n:number) {
 			n &= 0xFF;
-			this.flag_s = (n & 0x80);
-			this.flag_z = (n & 0x40);
-			this.flag_5 = (n & 0x20);
-			this.flag_h = (n & 0x10);
-			this.flag_3 = (n & 0x08);
+			this.flag_s  = (n & 0x80);
+			this.flag_z  = (n & 0x40);
+			this.flag_5  = (n & 0x20);
+			this.flag_h  = (n & 0x10);
+			this.flag_3  = (n & 0x08);
 			this.flag_pv = (n & 0x04);
-			this.flag_n = (n & 0x02);
-			this.flag_c = (n & 0x01);
+			this.flag_n  = (n & 0x02);
+			this.flag_c  = (n & 0x01);
 		}
 
 		get shadowF(): number {
@@ -754,8 +739,8 @@ namespace Z80 {
 			this.de = 0;
 			this.pc = 0;
 			this.sp = 0;
-			this.i = 0;
-			this.r = 0;
+			this.i  = 0;
+			this.r  = 0;
 			this.ix = 0;
 			this.iy = 0;
 
@@ -862,7 +847,7 @@ namespace Z80 {
 					this.a = this.memory.readByte(this.bc);
 					break;
 				default:
-					throw new ProcessorException("Unknown Instruction");
+					throw new Error(`Unknown Instruction: 0x${instruction}`);
 			}
 		}
 
@@ -880,16 +865,11 @@ namespace Z80 {
 		 * is updated along with the T state count.
 		 */
 		executeInstruction() {
+			let instruction:number = this.memory.readByte(this.pc);
+
 			this.isHalted = false;
-			var instruction:number = this.memory.readByte(this.pc);
-
 			this.pc++;
-
-			try {
-				this.decodeInstruction(instruction);
-			} catch (e) {
-				this.pc--;
-			}
+			this.decodeInstruction(instruction);
 		}
 
 		/**
