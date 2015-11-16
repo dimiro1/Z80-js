@@ -27,8 +27,7 @@ namespace Z80 {
 		/**
 		 * Read a byte from memory
 		 *
-		 * @param address
-		 *            The address to read from
+		 * @param address The address to read from
 		 * @return The byte read
 		 */
 		readByte(address:number): number;
@@ -36,8 +35,7 @@ namespace Z80 {
 		/**
 		 * Read a 16 bit word from memory, LSB, MSB order
 		 *
-		 * @param address
-		 *            The address to read from
+		 * @param address The address to read from
 		 * @return The word read
 		 */
 		readWord(address:number): number;
@@ -45,20 +43,16 @@ namespace Z80 {
 		/**
 		 * Write a byte into memory
 		 *
-		 * @param address
-		 *            The address to be written to
-		 * @param data
-		 *            The byte to be written
+		 * @param address The address to be written to
+		 * @param data The byte to be written
 		 */
 		writeByte(address:number, data:number);
 
 		/**
 		 * Write a 16 bit word into memory, LSB, MSB order.
 		 *
-		 * @param address
-		 *            The address to be written to
-		 * @param data
-		 *            The word to be written
+		 * @param address The address to be written to
+		 * @param data The word to be written
 		 */
 		writeWord(address:number, data:number);
 	}
@@ -70,8 +64,7 @@ namespace Z80 {
 		/**
 		 * Read data from an I/O port
 		 *
-		 * @param address
-		 *            The port to be read from
+		 * @param address The port to be read from
 		 * @return The 8 bit value at the request port address
 		 */
 		read(address:number):number;
@@ -79,10 +72,8 @@ namespace Z80 {
 		/**
 		 * Write data to an I/O port
 		 *
-		 * @param address
-		 *            The port to be written to
-		 * @param data
-		 *            The 8 bit value to be written
+		 * @param address The port to be written to
+		 * @param data The 8 bit value to be written
 		 */
 		write(address:number, data:number):void;
 	}
@@ -684,6 +675,66 @@ namespace Z80 {
 		}
 
 		/**
+		 * Get the value of the iyh register
+		 *
+		 * @returns {number} iyh
+		 */
+		get iyh(): number {
+			return this._iyh;
+		}
+
+		/**
+		 * Assign the iyh register.
+		 *
+		 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+		 * @param {number} n - The value to assign
+		 */
+		set iyh(n: number) {
+			this._iyh = n & 0xFF;
+		}
+
+		/**
+		 * Get the value of the iyl register
+		 *
+		 * @returns {number} iyl
+		 */
+		get iyl(): number {
+			return this._iyl;
+		}
+
+		/**
+		 * Assign the iyl register.
+		 *
+		 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+		 * @param {number} n - The value to assign
+		 */
+		set iyl(n: number) {
+			this._iyl = n & 0xFF;
+		}
+
+		/**
+		 * Get the value of the iy register
+		 *
+		 * @returns {number} iy - The combined registers
+		 */
+		get iy(): number {
+			return (this._iyh << 8) | (this._iyl & 0xFF);
+		}
+
+		/**
+		 * Assign the iy register.
+		 *
+		 * The value is masked with 0xFFFF, so I can make sure thet it does not overflow.
+		 * @param {number} n - The value to assign
+		 */
+		set iy(n: number) {
+			n &= 0xFFFF;
+
+			this.iyh = (n >> 8) & 0xFF;
+			this.iyl = n & 0xFF;
+		}
+
+		/**
 		 * Pop an operand from stack.
 		 * @private
 		 */
@@ -708,8 +759,8 @@ namespace Z80 {
 			this.ix = 0;
 			this.iy = 0;
 
-			this._shadow_a = 0;
-			this._shadow_f = 0;
+			this.shadowA = 0;
+			this.shadowF = 0;
 
 			this.isHalted = false;
 		}
