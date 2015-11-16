@@ -1,0 +1,7 @@
+{
+	"compilerOptions": {
+		"module": "umd",
+		"sourceMap": true,
+		"target": "ES5"
+	}
+}
