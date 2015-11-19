@@ -15,8 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-var Z80;
-(function (Z80_1) {
+"use strict";
+(function (deps, factory) {
+    if (typeof module === 'object' && typeof module.exports === 'object') {
+        var v = factory(require, exports); if (v !== undefined) module.exports = v;
+    }
+    else if (typeof define === 'function' && define.amd) {
+        define(deps, factory);
+    }
+})(["require", "exports"], function (require, exports) {
     var Z80 = (function () {
         function Z80(memory, io) {
             this.OPCODE_T_STATES = [
@@ -349,6 +356,12 @@ var Z80;
             this.flag_z = (this[reg] === 0) ? 1 : 0;
             this.flag_n = 1;
         };
+        Z80.prototype.inc16Bit = function (reg) {
+            this[reg]++;
+        };
+        Z80.prototype.dec16Bit = function (reg) {
+            this[reg]--;
+        };
         Z80.prototype.add16Bit = function (rega, regb) {
             this.flag_n = 1;
             this.flag_h = ((this[rega] & 0xFFF) + (this[regb] & 0xFFF) > 0xFFF) ? 1 : 0;
@@ -358,6 +371,33 @@ var Z80;
         Z80.prototype.getBit = function (x, bit) {
             return x & (1 << bit);
         };
+        Z80.prototype.rlc = function (reg) {
+            this.flag_c = this.getBit(this[reg], 7);
+            this[reg] = ((this[reg] << 1) & 0xFF) | this.flag_c;
+            this.flag_n = 0;
+            this.flag_h = 0;
+        };
+        Z80.prototype.rrc = function (reg) {
+            this.flag_c = this.getBit(this[reg], 0);
+            this[reg] = (this[reg] >> 1) | (this.flag_c << 7);
+            this.flag_h = 0;
+            this.flag_n = 0;
+        };
+        Z80.prototype.incPc = function () {
+            this.pc++;
+        };
+        Z80.prototype.inc2Pc = function () {
+            this.incPc();
+            this.incPc();
+        };
+        Z80.prototype.exafaf = function () {
+            var temp = this.a;
+            this.a = this.shadowA;
+            this.shadowA = temp;
+            temp = this.f;
+            this.f = this.shadowF;
+            this.shadowF = temp;
+        };
         Z80.prototype.decodeInstruction = function (instruction) {
             this.tStates += this.OPCODE_T_STATES[instruction];
             switch (instruction) {
@@ -365,13 +405,13 @@ var Z80;
                     break;
                 case 0x01:
                     this.bc = this.memory.readWord(this.pc);
-                    this.pc += 2;
+                    this.inc2Pc();
                     break;
                 case 0x02:
                     this.memory.writeByte(this.bc, this.a);
                     break;
                 case 0x03:
-                    this.bc++;
+                    this.inc16Bit("bc");
                     break;
                 case 0x04:
                     this.inc8Bit("b");
@@ -381,27 +421,35 @@ var Z80;
                     break;
                 case 0x06:
                     this.b = this.memory.readByte(this.pc);
+                    this.incPc();
                     break;
                 case 0x07:
-                    this.flag_c = this.getBit(this.a, 7);
-                    this.a = ((this.a << 1) & 0xFF) | this.flag_c;
-                    this.flag_n = 0;
-                    this.flag_h = 0;
-                    this.flag_z = 0;
+                    this.rlc("a");
                     break;
                 case 0x08:
-                    var temp = this.a;
-                    this.a = this.shadowA;
-                    this.shadowA = temp;
-                    temp = this.f;
-                    this.f = this.shadowF;
-                    this.shadowF = temp;
+                    this.exafaf();
                     break;
                 case 0x09:
                     this.add16Bit("hl", "bc");
                     break;
                 case 0x0A:
                     this.a = this.memory.readByte(this.bc);
+                    break;
+                case 0x0B:
+                    this.dec16Bit("bc");
+                    break;
+                case 0x0C:
+                    this.inc8Bit("c");
+                    break;
+                case 0x0D:
+                    this.dec8Bit("c");
+                    break;
+                case 0x0E:
+                    this.c = this.memory.readByte(this.pc);
+                    this.incPc();
+                    break;
+                case 0x0F:
+                    this.rrc("a");
                     break;
                 default:
                     throw new Error("Unknown Instruction: 0x" + instruction);
@@ -413,7 +461,7 @@ var Z80;
         Z80.prototype.executeInstruction = function () {
             var instruction = this.memory.readByte(this.pc);
             this.isHalted = false;
-            this.pc++;
+            this.incPc();
             this.decodeInstruction(instruction);
         };
         Z80.prototype.TStates = function () {
@@ -424,6 +472,7 @@ var Z80;
         };
         return Z80;
     })();
+    Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = Z80;
-})(Z80 || (Z80 = {}));
+});
 //# sourceMappingURL=Z80.js.map
