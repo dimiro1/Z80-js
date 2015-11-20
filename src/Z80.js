@@ -149,12 +149,12 @@
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Z80.prototype, "shadowA", {
+        Object.defineProperty(Z80.prototype, "alt_a", {
             get: function () {
-                return this._shadow_a;
+                return this._alt_a;
             },
             set: function (n) {
-                this._shadow_a = n & 0xFF;
+                this._alt_a = n & 0xFF;
             },
             enumerable: true,
             configurable: true
@@ -184,12 +184,12 @@
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Z80.prototype, "shadowF", {
+        Object.defineProperty(Z80.prototype, "alt_f", {
             get: function () {
-                return this._shadow_f;
+                return this._alt_f;
             },
             set: function (n) {
-                this._shadow_f = n & 0xFF;
+                this._alt_f = n & 0xFF;
             },
             enumerable: true,
             configurable: true
@@ -206,6 +206,18 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Z80.prototype, "alt_af", {
+            get: function () {
+                return (this.alt_a << 8) | (this.alt_f & 0xFF);
+            },
+            set: function (n) {
+                n &= 0xFFFF;
+                this.alt_a = (n >> 8) & 0xFF;
+                this.alt_f = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Z80.prototype, "h", {
             get: function () {
                 return this._h;
@@ -216,12 +228,32 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Z80.prototype, "alt_h", {
+            get: function () {
+                return this._alt_h;
+            },
+            set: function (n) {
+                this._alt_h = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Z80.prototype, "l", {
             get: function () {
                 return this._l;
             },
             set: function (n) {
                 this._l = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Z80.prototype, "alt_l", {
+            get: function () {
+                return this._alt_l;
+            },
+            set: function (n) {
+                this._alt_l = n & 0xFF;
             },
             enumerable: true,
             configurable: true
@@ -238,6 +270,18 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Z80.prototype, "alt_hl", {
+            get: function () {
+                return (this.alt_h << 8) | (this.alt_l & 0xFF);
+            },
+            set: function (n) {
+                n &= 0xFFFF;
+                this.alt_h = (n >> 8) & 0xFF;
+                this.alt_l = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Z80.prototype, "b", {
             get: function () {
                 return this._b;
@@ -248,12 +292,32 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Z80.prototype, "alt_b", {
+            get: function () {
+                return this._alt_b;
+            },
+            set: function (n) {
+                this._alt_b = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Z80.prototype, "c", {
             get: function () {
                 return this._c;
             },
             set: function (n) {
                 this._c = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Z80.prototype, "alt_c", {
+            get: function () {
+                return this._alt_c;
+            },
+            set: function (n) {
+                this._alt_c = n & 0xFF;
             },
             enumerable: true,
             configurable: true
@@ -270,12 +334,34 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Z80.prototype, "alt_bc", {
+            get: function () {
+                return (this.alt_b << 8) | (this.alt_c & 0xFF);
+            },
+            set: function (n) {
+                n &= 0xFFFF;
+                this.alt_b = (n >> 8) & 0xFF;
+                this.alt_c = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Z80.prototype, "d", {
             get: function () {
                 return this._d;
             },
             set: function (n) {
                 this._d = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Z80.prototype, "alt_d", {
+            get: function () {
+                return this._alt_d;
+            },
+            set: function (n) {
+                this._alt_d = n & 0xFF;
             },
             enumerable: true,
             configurable: true
@@ -290,6 +376,16 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Z80.prototype, "alt_e", {
+            get: function () {
+                return this._alt_e;
+            },
+            set: function (n) {
+                this._alt_e = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Z80.prototype, "de", {
             get: function () {
                 return (this.d << 8) | (this.e & 0xFF);
@@ -298,6 +394,18 @@
                 n &= 0xFFFF;
                 this.d = (n >> 8) & 0xFF;
                 this.e = n & 0xFF;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Z80.prototype, "alt_de", {
+            get: function () {
+                return (this.alt_d << 8) | (this.alt_e & 0xFF);
+            },
+            set: function (n) {
+                n &= 0xFFFF;
+                this.alt_d = (n >> 8) & 0xFF;
+                this.alt_e = n & 0xFF;
             },
             enumerable: true,
             configurable: true
@@ -410,19 +518,24 @@
             this.r = 0;
             this.ix = 0;
             this.iy = 0;
-            this.shadowA = 0;
-            this.shadowF = 0;
+            this.alt_af = 0;
+            this.alt_bc = 0;
+            this.alt_de = 0;
+            this.alt_hl = 0;
+            this.iff1 = false;
+            this.iff2 = false;
+            this.im = false;
             this.isHalted = false;
         };
         Z80.prototype.inc8Bit = function (reg) {
             this[reg]++;
-            this.flag_h = ((this[reg] & 0x0f) === 0) ? 1 : 0;
+            this.flag_h = ((this[reg] & 0x0F) === 0) ? 1 : 0;
             this.flag_z = (this[reg] === 0) ? 1 : 0;
             this.flag_n = 0;
         };
         Z80.prototype.dec8Bit = function (reg) {
             this[reg]--;
-            this.flag_h = ((this[reg] & 0x0f) === 0x0F) ? 1 : 0;
+            this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
             this.flag_z = (this[reg] === 0) ? 1 : 0;
             this.flag_n = 1;
         };
@@ -457,16 +570,12 @@
             this.pc++;
         };
         Z80.prototype.inc2Pc = function () {
-            this.incPc();
-            this.incPc();
+            this.pc += 2;
         };
         Z80.prototype.exafaf = function () {
-            var temp = this.a;
-            this.a = this.shadowA;
-            this.shadowA = temp;
-            temp = this.f;
-            this.f = this.shadowF;
-            this.shadowF = temp;
+            var temp = this.af;
+            this.af = this.alt_af;
+            this.alt_af = temp;
         };
         Z80.prototype.decodeInstruction = function (opcode) {
             this.tStates += this.OPCODE_T_STATES[opcode];

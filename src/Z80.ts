@@ -139,23 +139,41 @@ export default class Z80 implements CPU {
 	// C is used when you want to interface with hardware ports.
 	private _c: number;
 
+	// Shadow B register, Used to hold temporary data
+	private _alt_b: number;
+
+	// Shadow C register, Used to hold temporary data
+	private _alt_c: number;
+
 	// D is not normally used in its 8-bit form. Instead, it is used in conjuncture with E.
 	private _d: number;
 
 	// E is again, not used in its 8-bit form.
 	private _e: number;
 
+	// Shadow D register, Used to hold temporary data
+	private _alt_d: number;
+
+	// Shadow E register, Used to hold temporary data
+	private _alt_e: number;
+
 	// H is another register not normally used in 8-bit form.
 	private _h: number;
 
 	// L is yet another register not normally used in 8-bit form.
 	private _l: number;
+
+	// Shadow H register, Used to hold temporary data
+	private _alt_h: number;
+
+	// Shadow L register, Used to hold temporary data
+	private _alt_l: number;
 	
 	// Shadow A register, Used to hold temporary data
-	private _shadow_a: number;
+	private _alt_a: number;
 
 	// Shadow F register, Used to hold temporary data
-	private _shadow_f: number;
+	private _alt_f: number;
 
 	// PC The program counter. It hold the point in memory that the processor is executing code from. No function can change PC except by actually jumping to a different location in memory.
 	private _pc: number;
@@ -207,7 +225,13 @@ export default class Z80 implements CPU {
 
 	private tStates: number;
 
-	private isHalted:boolean;
+	private iff1: boolean;
+
+	private iff2: boolean;
+
+	private im: boolean;
+
+	private isHalted: boolean;
 
 	private OPCODE_T_STATES: number[] = [
 		4, 16, 7,  6, 4,  4, 7, 4,  4, 11, 7,  6, 4, 4, 7, 4, // 00
@@ -321,7 +345,7 @@ export default class Z80 implements CPU {
 	 * @param memory Interface to the memory architecture
 	 * @param io Interface to the i/o port architecture
 	 */
-	constructor(memory:Memory, io:IO) {
+	constructor(memory: Memory, io: IO) {
 		this.memory = memory;
 		this.io = io;
 
@@ -387,12 +411,23 @@ export default class Z80 implements CPU {
 		this._a = n & 0xFF;
 	}
 
-	get shadowA(): number {
-		return this._shadow_a;
+	/**
+	 * Get the value of the alt_a register
+	 *
+	 * @returns {number} alt_a
+	 */
+	get alt_a(): number {
+		return this._alt_a;
 	}
 
-	set shadowA(n: number) {
-		this._shadow_a = n & 0xFF;
+	/**
+	 * Assign the alt_a register.
+	 *
+	 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_a(n: number) {
+		this._alt_a = n & 0xFF;
 	}
 
 	/**
@@ -435,12 +470,23 @@ export default class Z80 implements CPU {
 		this.flag_c  = (n & 0x01);
 	}
 
-	get shadowF(): number {
-		return this._shadow_f;
+	/**
+	 * Get the value of the alt_f register
+	 *
+	 * @returns {number} alt_f
+	 */
+	get alt_f(): number {
+		return this._alt_f;
 	}
 
-	set shadowF(n: number) {
-		this._shadow_f = n & 0xFF;
+	/**
+	 * Assign the alt_f register.
+	 *
+	 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_f(n: number) {
+		this._alt_f = n & 0xFF;
 	}
 
 	/**
@@ -466,6 +512,28 @@ export default class Z80 implements CPU {
 	}
 
 	/**
+	 * Get the value of the alt_af register
+	 *
+	 * @returns {number} alt_af - The combined registers
+	 */
+	get alt_af(): number {
+		return (this.alt_a << 8) | (this.alt_f & 0xFF);
+	}
+
+	/**
+	 * Assign the alt_af register.
+	 *
+	 * The value is masked with 0xFFFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_af(n: number) {
+		n &= 0xFFFF;
+
+		this.alt_a = (n >> 8) & 0xFF;
+		this.alt_f = n & 0xFF;
+	}
+
+	/**
 	 * Get the value of the h register
 	 *
 	 * @returns {number} h
@@ -485,6 +553,25 @@ export default class Z80 implements CPU {
 	}
 
 	/**
+	 * Get the value of the alt_h register
+	 *
+	 * @returns {number} alt_h
+	 */
+	get alt_h(): number {
+		return this._alt_h;
+	}
+
+	/**
+	 * Assign the alt_h register.
+	 *
+	 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_h(n: number) {
+		this._alt_h = n & 0xFF;
+	}
+
+	/**
 	 * Get the value of the l register
 	 *
 	 * @returns {number} l
@@ -501,6 +588,25 @@ export default class Z80 implements CPU {
 	 */
 	set l(n: number) {
 		this._l = n & 0xFF;
+	}
+
+	/**
+	 * Get the value of the alt_l register
+	 *
+	 * @returns {number} alt_l
+	 */
+	get alt_l(): number {
+		return this._alt_l;
+	}
+
+	/**
+	 * Assign the alt_l register.
+	 *
+	 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_l(n: number) {
+		this._alt_l = n & 0xFF;
 	}
 
 	/**
@@ -526,6 +632,28 @@ export default class Z80 implements CPU {
 	}
 
 	/**
+	 * Get the value of the alt_hl register
+	 *
+	 * @returns {number} alt_hl - The combined registers
+	 */
+	get alt_hl(): number {
+		return (this.alt_h << 8) | (this.alt_l & 0xFF);
+	}
+
+	/**
+	 * Assign the alt_hl register.
+	 *
+	 * The value is masked with 0xFFFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_hl(n: number) {
+		n &= 0xFFFF;
+
+		this.alt_h = (n >> 8) & 0xFF;
+		this.alt_l = n & 0xFF;
+	}
+
+	/**
 	 * Get the value of the b register
 	 *
 	 * @returns {number} b
@@ -545,6 +673,25 @@ export default class Z80 implements CPU {
 	}
 
 	/**
+	 * Get the value of the alt_b register
+	 *
+	 * @returns {number} alt_b
+	 */
+	get alt_b(): number {
+		return this._alt_b;
+	}
+
+	/**
+	 * Assign the alt_b register.
+	 *
+	 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_b(n: number) {
+		this._alt_b = n & 0xFF;
+	}
+
+	/**
 	 * Get the value of the c register
 	 *
 	 * @returns {number} c
@@ -561,6 +708,20 @@ export default class Z80 implements CPU {
 	 */
 	set c(n: number) {
 		this._c = n & 0xFF;
+	}
+
+	get alt_c(): number {
+		return this._alt_c;
+	}
+
+	/**
+	 * Assign the alt_c register.
+	 *
+	 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_c(n: number) {
+		this._alt_c = n & 0xFF;
 	}
 
 	/**
@@ -586,6 +747,28 @@ export default class Z80 implements CPU {
 	}
 
 	/**
+	 * Get the value of the alt_bc register
+	 *
+	 * @returns {number} alt_bc - The combined registers
+	 */
+	get alt_bc(): number {
+		return (this.alt_b << 8) | (this.alt_c & 0xFF);
+	}
+
+	/**
+	 * Assign the alt_bc register.
+	 *
+	 * The value is masked with 0xFFFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_bc(n: number) {
+		n &= 0xFFFF;
+
+		this.alt_b = (n >> 8) & 0xFF;
+		this.alt_c = n & 0xFF;
+	}
+
+	/**
 	 * Get the value of the d register
 	 *
 	 * @returns {number} d
@@ -602,6 +785,25 @@ export default class Z80 implements CPU {
 	 */
 	set d(n: number) {
 		this._d = n & 0xFF;
+	}
+
+	/**
+	 * Get the value of the alt_d register
+	 *
+	 * @returns {number} alt_d
+	 */
+	get alt_d(): number {
+		return this._alt_d;
+	}
+
+	/**
+	 * Assign the alt_d register.
+	 *
+	 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_d(n: number) {
+		this._alt_d = n & 0xFF;
 	}
 
 	/**
@@ -624,6 +826,25 @@ export default class Z80 implements CPU {
 	}
 
 	/**
+	 * Get the value of the alt_e register
+	 *
+	 * @returns {number} alt_e
+	 */
+	get alt_e(): number {
+		return this._alt_e;
+	}
+
+	/**
+	 * Assign the alt_e register.
+	 *
+	 * The value is masked with 0xFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_e(n: number) {
+		this._alt_e = n & 0xFF;
+	}
+
+	/**
 	 * Get the value of the de register
 	 *
 	 * @returns {number} de - The combined registers
@@ -643,6 +864,28 @@ export default class Z80 implements CPU {
 
 		this.d = (n >> 8) & 0xFF;
 		this.e = n & 0xFF;
+	}
+
+	/**
+	 * Get the value of the alt_de register
+	 *
+	 * @returns {number} alt_de - The combined registers
+	 */
+	get alt_de(): number {
+		return (this.alt_d << 8) | (this.alt_e & 0xFF);
+	}
+
+	/**
+	 * Assign the alt_de register.
+	 *
+	 * The value is masked with 0xFFFF, so I can make sure thet it does not overflow.
+	 * @param {number} n - The value to assign
+	 */
+	set alt_de(n: number) {
+		n &= 0xFFFF;
+
+		this.alt_d = (n >> 8) & 0xFF;
+		this.alt_e = n & 0xFF;
 	}
 
 	/**
@@ -818,7 +1061,7 @@ export default class Z80 implements CPU {
 
 	/**
 	 * Pop an operand from stack.
-	 * @private
+	 * @returns {number} Value from stack
 	 */
 	pop(): number {
 		let temp: number = this.memory.readWord(this.sp);
@@ -841,8 +1084,14 @@ export default class Z80 implements CPU {
 		this.ix = 0;
 		this.iy = 0;
 
-		this.shadowA = 0;
-		this.shadowF = 0;
+		this.alt_af = 0;
+		this.alt_bc = 0;
+		this.alt_de = 0;
+		this.alt_hl = 0;
+
+		this.iff1 = false;
+		this.iff2 = false;
+		this.im = false;
 
 		this.isHalted = false;
 	}
@@ -853,7 +1102,7 @@ export default class Z80 implements CPU {
 	 */
 	private inc8Bit(reg: string) {
 		this[reg]++;
-		this.flag_h = ((this[reg] & 0x0f) === 0) ? 1 : 0;
+		this.flag_h = ((this[reg] & 0x0F) === 0) ? 1 : 0;
 		this.flag_z = (this[reg] === 0) ? 1 : 0;
 		this.flag_n = 0;
 	}
@@ -864,7 +1113,7 @@ export default class Z80 implements CPU {
 	 */
 	private dec8Bit(reg: string) {
 		this[reg]--;
-		this.flag_h = ((this[reg] & 0x0f) === 0x0F) ? 1 : 0;
+		this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
 		this.flag_z = (this[reg] === 0) ? 1 : 0;
 		this.flag_n = 1;
 	}
@@ -944,25 +1193,20 @@ export default class Z80 implements CPU {
 	 * Increment the pc register.
 	 */
 	private inc2Pc() {
-		this.incPc();
-		this.incPc();
+		this.pc += 2
 	}
 
 	/**
 	 * Exchanges two 16-bit values.
 	 */
 	private exafaf() {
-		let temp = this.a;
-		this.a = this.shadowA
-		this.shadowA = temp;
-
-		temp = this.f;
-		this.f = this.shadowF;
-		this.shadowF = temp;
+		let temp = this.af;
+		this.af = this.alt_af;
+		this.alt_af = temp;
 	}
 
 	/**
-	 * Execute all one byte instructions and pass multi-byte instructions on for further processing
+	 * Decode one byte instructions and pass multi-byte instructions on for further processing
 	 *
 	 * @param {number} opcode - Instruction byte
 	 * @returns {Instruction} instruction
@@ -976,9 +1220,9 @@ export default class Z80 implements CPU {
 	/**
 	 * Returns the state of the halt flag
 	 *
-	 * @return True if the processor has executed a HALT instruction
+	 * @return {boolean} True if the processor has executed a HALT instruction
 	 */
-	halted():boolean {
+	halted(): boolean {
 		return this.isHalted;
 	}
 
@@ -997,7 +1241,7 @@ export default class Z80 implements CPU {
 	/**
 	 * Return the number of T states since last reset
 	 *
-	 * @return Processor T states
+	 * @return {number} Processor T states
 	 */
 	TStates(): number {
 		return this.tStates;
