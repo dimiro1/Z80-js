@@ -1,0 +1,29 @@
+{
+  "name": "z80",
+  "version": "0.0.1",
+  "description": "A Z80 emulator written in JavaScript",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node tests/Z80_test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimiro1/Z80-js.git"
+  },
+  "keywords": [
+    "Z80",
+    "Emulator",
+    "Javascript",
+    "Typescript",
+    "Interpreter"
+  ],
+  "author": "Claudemiro Alves Feitosa Neto",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/dimiro1/Z80-js/issues"
+  },
+  "homepage": "https://github.com/dimiro1/Z80-js#readme"
+}
