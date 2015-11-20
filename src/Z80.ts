@@ -114,6 +114,13 @@ export interface CPU {
 }
 
 /**
+ * Internal interface for Instruction type.
+ */
+interface Instruction {
+	(): void;
+}
+
+/**
  * Z80 processor implementation
  */
 export default class Z80 implements CPU {
@@ -239,6 +246,74 @@ export default class Z80 implements CPU {
 		8, 8, 8, 8, 8, 8, 15, 8, 8, 8, 8, 8, 8, 8, 15, 8, // E0
 		8, 8, 8, 8, 8, 8, 15, 8, 8, 8, 8, 8, 8, 8, 15, 8  // F0
 	];
+
+	private INSTRUCTIONS: { [opcode: number]: Instruction; } = {
+		// NOP
+		0x00: () => {},
+		// LD BC,X
+		0x01: () => {
+			this.bc = this.memory.readWord(this.pc);
+			this.inc2Pc();
+		},
+		// LD (BC), A
+		0x02: () => {
+			this.memory.writeByte(this.bc, this.a);
+		},
+		// INC BC
+		0x03: () => {
+			this.inc16Bit("bc");
+		},
+		// INC B
+		0x04: () => {
+			this.inc8Bit("b");
+		},
+		// DEC B
+		0x05: () => {
+			this.dec8Bit("b");
+		},
+		// LD B,X
+		0x06: () => {
+			this.b = this.memory.readByte(this.pc);
+			this.incPc();
+		},
+		// RLCA
+		0x07: () => {
+			this.rlc("a");
+		},
+		// EX AF,AF'
+		0x08: () => {
+			this.exafaf();
+		},
+		// ADD HL,BC
+		0x09: () => {
+			this.add16Bit("hl", "bc");
+		},
+		// LD A,(BC)
+		0x0A: () => {
+			this.a = this.memory.readByte(this.bc);
+		},
+		// DEC BC
+		0x0B: () => {
+			this.dec16Bit("bc");
+		},
+		// INC C
+		0x0C: () => {
+			this.inc8Bit("c");
+		},
+		// DEC C
+		0x0D: () => {
+			this.dec8Bit("c");
+		},
+		// LD C,X
+		0x0E: () => {
+			this.c = this.memory.readByte(this.pc);
+			this.incPc();
+		},
+		// RRCA
+		0x0F: () => {
+			this.rrc("a");
+		},
+	};
 
 	/**
 	 * Standard constructor. Set the processor up with a memory and I/O interface.
@@ -889,81 +964,13 @@ export default class Z80 implements CPU {
 	/**
 	 * Execute all one byte instructions and pass multi-byte instructions on for further processing
 	 *
-	 * @param instruction Instruction byte
+	 * @param {number} opcode - Instruction byte
+	 * @returns {Instruction} instruction
 	 */
-	private decodeInstruction(instruction: number) {
-		this.tStates += this.OPCODE_T_STATES[instruction];
+	private decodeInstruction(opcode: number): Instruction {
+		this.tStates += this.OPCODE_T_STATES[opcode];
 
-		switch (instruction) {
-			// NOP
-			case 0x00:
-				break;
-			// LD BC,X
-			case 0x01:
-				this.bc = this.memory.readWord(this.pc);
-				this.inc2Pc();
-				break;
-			// LD (BC), A
-			case 0x02:
-				this.memory.writeByte(this.bc, this.a);
-				break;
-			// INC BC
-			case 0x03:
-				this.inc16Bit("bc");
-				break;
-			// INC B
-			case 0x04:
-				this.inc8Bit("b");
-				break;
-			// DEC B
-			case 0x05:
-				this.dec8Bit("b");
-				break;
-			// LD B,X
-			case 0x06:
-				this.b = this.memory.readByte(this.pc);
-				this.incPc();
-				break;
-			// RLCA
-			case 0x07:
-				this.rlc("a");
-				break;
-			// EX AF,AF'
-			case 0x08:
-				this.exafaf();
-				break;
-			// ADD HL,BC
-			case 0x09:
-				this.add16Bit("hl", "bc");
-				break;
-			// LD A,(BC)
-			case 0x0A:
-				this.a = this.memory.readByte(this.bc);
-				break;
-			// DEC BC
-			case 0x0B:
-				this.dec16Bit("bc");
-				break;
-			// INC C
-			case 0x0C:
-				this.inc8Bit("c");
-				break;
-			// DEC C
-			case 0x0D:
-				this.dec8Bit("c");
-				break;
-			// LD C,X
-			case 0x0E:
-				this.c = this.memory.readByte(this.pc);
-				this.incPc();
-				break;
-			// RRCA
-			case 0x0F:
-				this.rrc("a");
-				break;
-			default:
-				throw new Error(`Unknown Instruction: 0x${instruction}`);
-		}
+		return this.INSTRUCTIONS[opcode];
 	}
 
 	/**
@@ -984,7 +991,7 @@ export default class Z80 implements CPU {
 
 		this.isHalted = false;
 		this.incPc();
-		this.decodeInstruction(instruction);
+		this.decodeInstruction(instruction)();
 	}
 
 	/**

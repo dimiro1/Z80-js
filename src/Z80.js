@@ -26,6 +26,7 @@
 })(["require", "exports"], function (require, exports) {
     var Z80 = (function () {
         function Z80(memory, io) {
+            var _this = this;
             this.OPCODE_T_STATES = [
                 4, 16, 7, 6, 4, 4, 7, 4, 4, 11, 7, 6, 4, 4, 7, 4,
                 0, 16, 7, 6, 4, 4, 7, 4, 12, 11, 7, 6, 4, 4, 7, 4,
@@ -62,6 +63,57 @@
                 8, 8, 8, 8, 8, 8, 15, 8, 8, 8, 8, 8, 8, 8, 15, 8,
                 8, 8, 8, 8, 8, 8, 15, 8, 8, 8, 8, 8, 8, 8, 15, 8
             ];
+            this.INSTRUCTIONS = {
+                0x00: function () { },
+                0x01: function () {
+                    _this.bc = _this.memory.readWord(_this.pc);
+                    _this.inc2Pc();
+                },
+                0x02: function () {
+                    _this.memory.writeByte(_this.bc, _this.a);
+                },
+                0x03: function () {
+                    _this.inc16Bit("bc");
+                },
+                0x04: function () {
+                    _this.inc8Bit("b");
+                },
+                0x05: function () {
+                    _this.dec8Bit("b");
+                },
+                0x06: function () {
+                    _this.b = _this.memory.readByte(_this.pc);
+                    _this.incPc();
+                },
+                0x07: function () {
+                    _this.rlc("a");
+                },
+                0x08: function () {
+                    _this.exafaf();
+                },
+                0x09: function () {
+                    _this.add16Bit("hl", "bc");
+                },
+                0x0A: function () {
+                    _this.a = _this.memory.readByte(_this.bc);
+                },
+                0x0B: function () {
+                    _this.dec16Bit("bc");
+                },
+                0x0C: function () {
+                    _this.inc8Bit("c");
+                },
+                0x0D: function () {
+                    _this.dec8Bit("c");
+                },
+                0x0E: function () {
+                    _this.c = _this.memory.readByte(_this.pc);
+                    _this.incPc();
+                },
+                0x0F: function () {
+                    _this.rrc("a");
+                },
+            };
             this.memory = memory;
             this.io = io;
             this.tStates = 0;
@@ -416,62 +468,9 @@
             this.f = this.shadowF;
             this.shadowF = temp;
         };
-        Z80.prototype.decodeInstruction = function (instruction) {
-            this.tStates += this.OPCODE_T_STATES[instruction];
-            switch (instruction) {
-                case 0x00:
-                    break;
-                case 0x01:
-                    this.bc = this.memory.readWord(this.pc);
-                    this.inc2Pc();
-                    break;
-                case 0x02:
-                    this.memory.writeByte(this.bc, this.a);
-                    break;
-                case 0x03:
-                    this.inc16Bit("bc");
-                    break;
-                case 0x04:
-                    this.inc8Bit("b");
-                    break;
-                case 0x05:
-                    this.dec8Bit("b");
-                    break;
-                case 0x06:
-                    this.b = this.memory.readByte(this.pc);
-                    this.incPc();
-                    break;
-                case 0x07:
-                    this.rlc("a");
-                    break;
-                case 0x08:
-                    this.exafaf();
-                    break;
-                case 0x09:
-                    this.add16Bit("hl", "bc");
-                    break;
-                case 0x0A:
-                    this.a = this.memory.readByte(this.bc);
-                    break;
-                case 0x0B:
-                    this.dec16Bit("bc");
-                    break;
-                case 0x0C:
-                    this.inc8Bit("c");
-                    break;
-                case 0x0D:
-                    this.dec8Bit("c");
-                    break;
-                case 0x0E:
-                    this.c = this.memory.readByte(this.pc);
-                    this.incPc();
-                    break;
-                case 0x0F:
-                    this.rrc("a");
-                    break;
-                default:
-                    throw new Error("Unknown Instruction: 0x" + instruction);
-            }
+        Z80.prototype.decodeInstruction = function (opcode) {
+            this.tStates += this.OPCODE_T_STATES[opcode];
+            return this.INSTRUCTIONS[opcode];
         };
         Z80.prototype.halted = function () {
             return this.isHalted;
@@ -480,7 +479,7 @@
             var instruction = this.memory.readByte(this.pc);
             this.isHalted = false;
             this.incPc();
-            this.decodeInstruction(instruction);
+            this.decodeInstruction(instruction)();
         };
         Z80.prototype.TStates = function () {
             return this.tStates;
