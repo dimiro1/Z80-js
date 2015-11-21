@@ -1,3 +1,21 @@
+/*!
+ * A Javascript/Typescript Z80 Emulator
+ * Copyright (C) 2015  Claudemiro Alves Feitosa Neto <dimiro1@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var tests = {
     "00": {
         "input": {
@@ -45,205 +63,67 @@ var tests = {
 
     "04": {
         "input": {
-            "registers": {
-                "af": 0x0000, "bc": 0xff00, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x0000, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0000,
-
-                "i": 0x00, "r": 0x00,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-
-                "event": 1
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": [0x04]
-            }
+            "regs": [0x0000, 0xff00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0, 0, 0, 0],
+            "mem": [0x0000, 0x04]
         },
-        "expected": {
-            "registers": {
-                "af": 0x0050, "bc": 0x0000, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x0000, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0001,
-
-                "i": 0x00, "r": 0x01,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-                "tStates": 4
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": []
-            }
+        "output": {
+            "regs": [0x0050, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x00, 0x01, 0, 0, 0, 0, 4],
+            "mem": []
         }
     },
 
     "05": {
         "input": {
-            "registers": {
-                "af": 0x0000, "bc": 0x0000, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x0000, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0000,
-
-                "i": 0x00, "r": 0x00,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-
-                "event": 1
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": [0x05]
-            }
+            "regs": [0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0, 0, 0, 0],
+            "mem": [0x0000, 0x05]
         },
-        "expected": {
-            "registers": {
-                "af": 0x00ba, "bc": 0xff00, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x0000, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0001,
-
-                "i": 0x00, "r": 0x01,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-                "tStates": 7
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": []
-            }
+        "output": {
+            "regs": [0x00ba, 0xff00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x00, 0x01, 0, 0, 0, 0, 4],
+            "mem": []
         }
     },
 
     "06": {
         "input": {
-            "registers": {
-                "af": 0x0000, "bc": 0x0000, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x0000, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0000,
-
-                "i": 0x00, "r": 0x00,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-
-                "event": 1
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": [0x06, 0xbc]
-            }
+            "regs": [0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0, 0, 0, 0],
+            "mem": [0x0000, 0x06, 0xbc]
         },
-        "expected": {
-            "registers": {
-                "af": 0x0000, "bc": 0xbc00, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x0000, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0002,
-
-                "i": 0x00, "r": 0x01,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-                "tStates": 7
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": []
-            }
+        "output": {
+            "regs": [0x0000, 0xbc00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0002, 0x00, 0x01, 0, 0, 0, 0, 7],
+            "mem": []
         }
     },
 
     "07": {
         "input": {
-            "registers": {
-                "af": 0x8800, "bc": 0x0000, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x0000, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0000,
-
-                "i": 0x00, "r": 0x00,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-
-                "event": 1
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": [0x07]
-            }
+            "regs": [0x8800, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0, 0, 0, 0],
+            "mem": [0x0000, 0x07]
         },
-        "expected": {
-            "registers": {
-                "af": 0x1101, "bc": 0x0000, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x0000, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0001,
-
-                "i": 0x00, "r": 0x01,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-                "tStates": 4
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": []
-            }
+        "output": {
+            "regs": [0x1101, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x00, 0x01, 0, 0, 0, 0, 4],
+            "mem": []
         }
     },
 
     "08": {
         "input": {
-            "registers": {
-                "af": 0xdef0, "bc": 0x0000, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0x1234, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0000,
-
-                "i": 0x00, "r": 0x00,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-
-                "event": 1
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": [0x08]
-            }
+            "regs": [0xdef0, 0x0000, 0x0000, 0x0000, 0x1234, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0, 0, 0, 0],
+            "mem": [0x0000, 0x08]
         },
-        "expected": {
-            "registers": {
-                "af": 0x1234, "bc": 0x0000, "de": 0x0000, "hl": 0x0000,
-                "alt_af": 0xdef0, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0001,
-
-                "i": 0x00, "r": 0x01,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-                "tStates": 4
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": []
-            }
+        "output": {
+            "regs": [0x1234, 0x0000, 0x0000, 0x0000, 0xdef0, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x00, 0x01, 0, 0, 0, 0, 4],
+            "mem": []
         }
     },
 
     "09": {
         "input": {
-            "registers": {
-                "af": 0xdef0, "bc": 0x5678, "de": 0x0000, "hl": 0x9abc,
-                "alt_af": 0x1234, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0000,
-
-                "i": 0x00, "r": 0x00,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-
-                "event": 1
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": [0x09]
-            }
+            "regs": [0x0000, 0x5678, 0x0000, 0x9abc, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00, 0x00, 0, 0, 0, 0],
+            "mem": [0x0000, 0x09]
         },
-        "expected": {
-            "registers": {
-                "af": 0x0030, "bc": 0x5678, "de": 0x0000, "hl": 0xf134,
-                "alt_af": 0xdef0, "alt_bc": 0x0000, "alt_de": 0x0000, "alt_hl": 0x0000,
-                "ix": 0x0000, "iy": 0x0000, "sp": 0x0000, "pc": 0x0001,
-
-                "i": 0x00, "r": 0x01,
-                "iff1": false, "iff2": false, "im": false, "isHalted": false,
-                "tStates": 11
-            },
-            "memory": {
-                "start": 0x0000,
-                "data": []
-            }
+        "output": {
+            "regs": [0x0030, 0x5678, 0x0000, 0xf134, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x00, 0x01, 0, 0, 0, 0, 11],
+            "mem": []
         }
     }
 };

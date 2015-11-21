@@ -1,3 +1,21 @@
+/*!
+ * A Javascript/Typescript Z80 Emulator
+ * Copyright (C) 2015  Claudemiro Alves Feitosa Neto <dimiro1@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var assert = require("assert");
 var Z80 = require("../src/Z80").default;
 var suite = require("./suite");
@@ -84,7 +102,7 @@ function testRegisters(z80, output) {
     output.regs.forEach((value, i) => {
         it(NAMES_TABLE[i], () => {
             if (NAMES_TABLE[i] === "af") {
-                // console.log(z80.f.toString(2));
+                console.log(z80.f.toString(2));
             }
             assert.equal(z80[NAMES_TABLE[i]], value);
         });
@@ -110,7 +128,7 @@ function testMemory(z80, output, opcode) {
 // ----------- Instructions --------------
 
 
-var tests = ["00", "01", "02", "03"];
+var tests = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"];
 
 describe("Z80", () => {
     tests.forEach((opcode) => {
