@@ -430,6 +430,16 @@
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(Z80.prototype, "r7", {
+            get: function () {
+                return (this._r & 0x80) >> 7;
+            },
+            set: function (n) {
+                this._r = (n << 7) | (this._r & 0x7F);
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Z80.prototype, "ir", {
             set: function (n) {
                 n &= 0xFFFF;

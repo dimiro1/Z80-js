@@ -187,9 +187,6 @@ export default class Z80 implements CPU {
 	// R is the refresh register. Although it holds no specific purpose to the OS, it can be used to generate random numbers.
 	private _r: number;
 
-	// The highest bit (bit 7) of the R register
-	private _r7: number;
-
 	// IXH The higher (first) byte of the IX register. Note that I is not the higher byte of IX. Combines with IXL to make the IX register.
 	private _ixh: number;
 
@@ -927,6 +924,24 @@ export default class Z80 implements CPU {
 	 */
 	set r(n: number) {
 		this._r = n & 0xFF;
+	}
+
+	/**
+	 * The highest bit (bit 7) of the R register
+	 *
+	 * @returns {number} bit 7 of R
+	 */
+	get r7(): number {
+		return (this._r & 0x80) >> 7;
+	}
+
+	/**
+	 * The highest bit (bit 7) of the R register
+	 *
+	 * @param {number} n - The value to assign 0 | 1
+	 */
+	set r7(n: number) {
+		this._r = (n << 7) | (this._r & 0x7F);
 	}
 
 	/**
