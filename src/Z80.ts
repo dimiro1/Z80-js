@@ -27,7 +27,7 @@ export interface Memory {
 	/**
 	 * Read a byte from memory
 	 *
-	 * @param address The address to read from
+	 * @param {number} address The address to read from
 	 * @return The byte read
 	 */
 	readByte(address: number): number;
@@ -35,7 +35,7 @@ export interface Memory {
 	/**
 	 * Read a 16 bit word from memory, LSB, MSB order
 	 *
-	 * @param address The address to read from
+	 * @param {number} address The address to read from
 	 * @return The word read
 	 */
 	readWord(address: number): number;
@@ -43,16 +43,16 @@ export interface Memory {
 	/**
 	 * Write a byte into memory
 	 *
-	 * @param address The address to be written to
-	 * @param data The byte to be written
+	 * @param {number} address The address to be written to
+	 * @param {number} data The byte to be written
 	 */
 	writeByte(address: number, data: number);
 
 	/**
 	 * Write a 16 bit word into memory, LSB, MSB order.
 	 *
-	 * @param address The address to be written to
-	 * @param data The word to be written
+	 * @param {number} address The address to be written to
+	 * @param {number} data The word to be written
 	 */
 	writeWord(address: number, data: number);
 }
@@ -186,6 +186,9 @@ export default class Z80 implements CPU {
 
 	// R is the refresh register. Although it holds no specific purpose to the OS, it can be used to generate random numbers.
 	private _r: number;
+
+	// The highest bit (bit 7) of the R register
+	private _r7: number;
 
 	// IXH The higher (first) byte of the IX register. Note that I is not the higher byte of IX. Combines with IXL to make the IX register.
 	private _ixh: number;
@@ -913,7 +916,7 @@ export default class Z80 implements CPU {
 	 * @returns {number} r
 	 */
 	get r(): number {
-		return this._e;
+		return this._r;
 	}
 
 	/**
@@ -1231,11 +1234,10 @@ export default class Z80 implements CPU {
 	 * is updated along with the T state count.
 	 */
 	executeInstruction() {
-		let instruction: number = this.memory.readByte(this.pc);
-
-		this.isHalted = false;
+		let opcode: number = this.memory.readByte(this.pc);
+		this.r = (this.r + 1) & 0x7F;
 		this.incPc();
-		this.decodeInstruction(instruction)();
+		this.decodeInstruction(opcode)();
 	}
 
 	/**

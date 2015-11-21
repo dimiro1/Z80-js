@@ -422,7 +422,7 @@
         });
         Object.defineProperty(Z80.prototype, "r", {
             get: function () {
-                return this._e;
+                return this._r;
             },
             set: function (n) {
                 this._r = n & 0xFF;
@@ -585,10 +585,10 @@
             return this.isHalted;
         };
         Z80.prototype.executeInstruction = function () {
-            var instruction = this.memory.readByte(this.pc);
-            this.isHalted = false;
+            var opcode = this.memory.readByte(this.pc);
+            this.r = (this.r + 1) & 0x7F;
             this.incPc();
-            this.decodeInstruction(instruction)();
+            this.decodeInstruction(opcode)();
         };
         Z80.prototype.TStates = function () {
             return this.tStates;
