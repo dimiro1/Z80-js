@@ -4,7 +4,7 @@ var suite = require("./suite");
 
 // --------------- Memory --------------
 function Memory() {
-    this.data = new Uint8Array(100);
+    this.data = new Uint8Array(0xFFFF);
 }
 
 Memory.prototype.readByte = function(address) {
@@ -37,52 +37,105 @@ IO.prototype.write = function(address, data) {
 
 // -----------  Util functions-------------
 
-function populateRegisters(z80, registers) {
-    for (key in registers) {
-        if (registers.hasOwnProperty(key)) {
-            z80[key] = registers[key];
-        }
-    }
-}
+var NAMES_TABLE = {
+    0: "af",
+    1: "bc",
+    2: "de",
+    3: "hl",
+    4: "alt_af",
+    5: "alt_bc",
+    6: "alt_de",
+    7: "alt_hl",
+    8: "ix",
+    9: "iy",
+    10: "sp",
+    11: "pc",
 
-function populateMemory(z80, memory) {
-    var address = memory.start;
-    memory.data.forEach(function(data, i) {
-        z80.memory.data[address] = data;
-        address++;
+    12: "i",
+    13: "r",
+
+    14: "iff1",
+    15: "iff2",
+
+    16: "im",
+    17: "isHalted",
+    18: "tStates"
+};
+
+function populateRegisters(z80, input) {
+    input.regs.forEach((value, i) => {
+        z80[NAMES_TABLE[i]] = value;
     });
 }
 
-function testRegisters(z80, expected) {
-    for (key in expected) {
-        if (expected.hasOwnProperty(key)) {
-            it(`${key}`, () => {
-                assert.equal(z80[key], expected[key]);    
+function populateMemory(z80, input) {
+    if (input.mem.length === 0) {
+        return;
+    }
+
+    var address = input.mem[0];
+
+    for (var i = 1; i < input.mem.length; i++) {
+        z80.memory.data[address++] = input.mem[i];
+    }
+}
+
+function testRegisters(z80, output) {
+    output.regs.forEach((value, i) => {
+        it(NAMES_TABLE[i], () => {
+            if (NAMES_TABLE[i] === "af") {
+                // console.log(z80.f.toString(2));
+            }
+            assert.equal(z80[NAMES_TABLE[i]], value);
+        });
+    });
+}
+
+function testMemory(z80, output, opcode) {
+    if (output.mem.length === 0) {
+        return;
+    }
+
+    var address = output.mem[0];
+
+    output.mem.forEach((value, i) => {
+        if (i !== 0) { // Discard the first Element
+            it(`Memory: 0x${opcode}`, () => {
+                assert.equal(z80.memory.data[address++], value);
             });
         }
-    }
+    });
 }
 
 // ----------- Instructions --------------
 
+
+var tests = ["00", "01", "02", "03"];
+
 describe("Z80", () => {
-    describe("0x00", () => {
-        var z80 = new Z80(new Memory(), new IO());
+    tests.forEach((opcode) => {
+        describe(`0x${opcode}`, () => {
+            var test = suite.get(opcode);
+            var input = test.input;
+            var output = test.output;
 
-        var test = suite["00"];
-        var input = test.input;
-        var expected = test.expected;
+            // New CPU
+            var z80 = new Z80(new Memory(), new IO());
 
-        // Registers
-        populateRegisters(z80, input.registers);
+            // Registers
+            populateRegisters(z80, input);
 
-        // Memory
-        populateMemory(z80, input.memory);
+            // Memory
+            populateMemory(z80, input);
 
-        // Executing an Instruction
-        z80.executeInstruction();
+            // Executing an Instruction
+            z80.executeInstruction();
 
-        // Testing
-        testRegisters(z80, expected);
+            // Testing
+            testRegisters(z80, output);
+
+            // Memory
+            testMemory(z80, output, opcode);
+        });
     });
 });

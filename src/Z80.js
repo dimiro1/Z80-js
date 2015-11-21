@@ -28,10 +28,10 @@
         function Z80(memory, io) {
             var _this = this;
             this.OPCODE_T_STATES = [
-                4, 16, 7, 6, 4, 4, 7, 4, 4, 11, 7, 6, 4, 4, 7, 4,
-                0, 16, 7, 6, 4, 4, 7, 4, 12, 11, 7, 6, 4, 4, 7, 4,
-                0, 16, 7, 6, 4, 4, 7, 4, 0, 11, 7, 6, 4, 4, 7, 4,
-                0, 16, 7, 6, 4, 4, 7, 4, 0, 11, 7, 6, 4, 4, 7, 4,
+                4, 10, 7, 6, 4, 7, 7, 4, 4, 11, 7, 6, 4, 4, 7, 4,
+                0, 10, 7, 6, 4, 4, 7, 4, 12, 11, 7, 6, 4, 4, 7, 4,
+                0, 10, 7, 6, 4, 4, 7, 4, 0, 11, 7, 6, 4, 4, 7, 4,
+                0, 10, 7, 6, 4, 4, 7, 4, 0, 11, 7, 6, 4, 4, 7, 4,
                 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
                 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
                 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
@@ -43,7 +43,7 @@
                 0, 10, 0, 0, 0, 11, 7, 0, 0, 0, 0, 0, 0, 0, 7, 0,
                 0, 10, 0, 11, 0, 11, 7, 0, 0, 4, 0, 11, 0, 4, 7, 0,
                 0, 10, 0, 19, 0, 11, 7, 0, 0, 4, 0, 4, 0, 0, 7, 0,
-                0, 4, 0, 4, 0, 11, 7, 0, 0, 0, 0, 0, 0, 4, 7, 0
+                0, 10, 0, 4, 0, 11, 7, 0, 0, 0, 0, 0, 0, 4, 7, 0
             ];
             this.OPCODE_CB_STATES = [
                 8, 8, 8, 8, 8, 8, 15, 8, 8, 8, 8, 8, 8, 8, 15, 8,
@@ -92,7 +92,7 @@
                     _this.exafaf();
                 },
                 0x09: function () {
-                    _this.add16Bit("hl", "bc");
+                    _this.add16Bit("bc");
                 },
                 0x0A: function () {
                     _this.a = _this.memory.readByte(_this.bc);
@@ -161,25 +161,25 @@
         });
         Object.defineProperty(Z80.prototype, "f", {
             get: function () {
-                return ((this.flag_s << 0x80) |
-                    (this.flag_z << 0x40) |
-                    (this.flag_5 << 0x20) |
-                    (this.flag_h << 0x10) |
-                    (this.flag_3 << 0x08) |
-                    (this.flag_pv << 0x04) |
-                    (this.flag_n << 0x02) |
-                    (this.flag_c << 0x01));
+                return ((this.flag_s << 7) |
+                    (this.flag_z << 6) |
+                    (this.flag_5 << 5) |
+                    (this.flag_h << 4) |
+                    (this.flag_3 << 3) |
+                    (this.flag_pv << 2) |
+                    (this.flag_n << 1) |
+                    (this.flag_c << 0));
             },
             set: function (n) {
                 n &= 0xFF;
-                this.flag_s = (n & 0x80);
-                this.flag_z = (n & 0x40);
-                this.flag_5 = (n & 0x20);
-                this.flag_h = (n & 0x10);
-                this.flag_3 = (n & 0x08);
-                this.flag_pv = (n & 0x04);
-                this.flag_n = (n & 0x02);
-                this.flag_c = (n & 0x01);
+                this.flag_s = (n & 0x80) >> 7;
+                this.flag_z = (n & 0x40) >> 6;
+                this.flag_5 = (n & 0x20) >> 5;
+                this.flag_h = (n & 0x10) >> 4;
+                this.flag_3 = (n & 0x08) >> 3;
+                this.flag_pv = (n & 0x04) >> 2;
+                this.flag_n = (n & 0x02) >> 1;
+                this.flag_c = (n & 0x01) >> 0;
             },
             enumerable: true,
             configurable: true
@@ -532,21 +532,27 @@
             this.alt_bc = 0;
             this.alt_de = 0;
             this.alt_hl = 0;
-            this.iff1 = false;
-            this.iff2 = false;
-            this.im = false;
-            this.isHalted = false;
+            this.iff1 = 0;
+            this.iff2 = 0;
+            this.im = 0;
+            this.isHalted = 0;
         };
         Z80.prototype.inc8Bit = function (reg) {
             this[reg]++;
-            this.flag_h = ((this[reg] & 0x0F) === 0) ? 1 : 0;
+            this.flag_s = (this[reg] > 0) ? 1 : 0;
             this.flag_z = (this[reg] === 0) ? 1 : 0;
+            this.flag_h = ((this[reg] & 0x0F) === 0) ? 1 : 0;
+            this.flag_pv = (this[reg] === 0x80) ? 1 : 0;
             this.flag_n = 0;
         };
         Z80.prototype.dec8Bit = function (reg) {
             this[reg]--;
-            this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
+            this.flag_s = (this[reg] > 0) ? 1 : 0;
             this.flag_z = (this[reg] === 0) ? 1 : 0;
+            this.flag_5 = this.getBit(this[reg], 5);
+            this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
+            this.flag_3 = this.getBit(this[reg], 3);
+            this.flag_pv = (this[reg] === 0x80) ? 1 : 0;
             this.flag_n = 1;
         };
         Z80.prototype.inc16Bit = function (reg) {
@@ -555,17 +561,17 @@
         Z80.prototype.dec16Bit = function (reg) {
             this[reg]--;
         };
-        Z80.prototype.add16Bit = function (rega, regb) {
-            this.flag_n = 1;
-            this.flag_h = ((this[rega] & 0xFFF) + (this[regb] & 0xFFF) > 0xFFF) ? 1 : 0;
-            this.flag_c = (this[rega] + this[regb] > 0xFFFF) ? 1 : 0;
-            this[rega] += this[regb];
+        Z80.prototype.add16Bit = function (reg) {
+            this.hl += this[reg];
+            this.flag_n = 0;
+            this.flag_h = ((this.hl & 0xFFF) + (this[reg] & 0xFFF) > 0xFFF) ? 1 : 0;
+            this.flag_c = (this.hl + this[reg] > 0xFFFF) ? 1 : 0;
         };
         Z80.prototype.getBit = function (x, bit) {
-            return x & (1 << bit);
+            return (x & (1 << bit - 1)) > 0 ? 1 : 0;
         };
         Z80.prototype.rlc = function (reg) {
-            this.flag_c = this.getBit(this[reg], 7);
+            this.flag_c = this.getBit(this[reg], 8);
             this[reg] = ((this[reg] << 1) & 0xFF) | this.flag_c;
             this.flag_n = 0;
             this.flag_h = 0;
@@ -592,7 +598,7 @@
             return this.INSTRUCTIONS[opcode];
         };
         Z80.prototype.halted = function () {
-            return this.isHalted;
+            return this.isHalted === 1;
         };
         Z80.prototype.executeInstruction = function () {
             var opcode = this.memory.readByte(this.pc);

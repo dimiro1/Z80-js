@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node tests/Z80_test.js"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",

@@ -17,6 +17,7 @@
  */
 
 // http://z80-heaven.wikidot.com/instructions-set
+// http://clrhome.org/table/
 
 "use strict"
 
@@ -225,19 +226,19 @@ export default class Z80 implements CPU {
 
 	private tStates: number;
 
-	private iff1: boolean;
+	private iff1: number;
 
-	private iff2: boolean;
+	private iff2: number;
 
-	private im: boolean;
+	private im: number;
 
-	private isHalted: boolean;
+	private isHalted: number;
 
 	private OPCODE_T_STATES: number[] = [
-		4, 16, 7,  6, 4,  4, 7, 4,  4, 11, 7,  6, 4, 4, 7, 4, // 00
-		0, 16, 7,  6, 4,  4, 7, 4, 12, 11, 7,  6, 4, 4, 7, 4, // 10
-		0, 16, 7,  6, 4,  4, 7, 4,  0, 11, 7,  6, 4, 4, 7, 4, // 20
-		0, 16, 7,  6, 4,  4, 7, 4,  0, 11, 7,  6, 4, 4, 7, 4, // 30
+		4, 10, 7,  6, 4,  7, 7, 4,  4, 11, 7,  6, 4, 4, 7, 4, // 00
+		0, 10, 7,  6, 4,  4, 7, 4, 12, 11, 7,  6, 4, 4, 7, 4, // 10
+		0, 10, 7,  6, 4,  4, 7, 4,  0, 11, 7,  6, 4, 4, 7, 4, // 20
+		0, 10, 7,  6, 4,  4, 7, 4,  0, 11, 7,  6, 4, 4, 7, 4, // 30
 		4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // 40
 		4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // 50
 		4,  4, 4,  4, 4,  4, 7, 4,  4,  4, 4,  4, 4, 4, 7, 4, // 60
@@ -249,7 +250,7 @@ export default class Z80 implements CPU {
 		0, 10, 0,  0, 0, 11, 7, 0,  0,  0, 0,  0, 0, 0, 7, 0, // C0
 		0, 10, 0, 11, 0, 11, 7, 0,  0,  4, 0, 11, 0, 4, 7, 0, // D0
 		0, 10, 0, 19, 0, 11, 7, 0,  0,  4, 0,  4, 0, 0, 7, 0, // E0
-		0,  4, 0,  4, 0, 11, 7, 0,  0,  0, 0,  0, 0, 4, 7, 0  // F0
+		0, 10, 0,  4, 0, 11, 7, 0,  0,  0, 0,  0, 0, 4, 7, 0  // F0
 	];
 
 	private OPCODE_CB_STATES: number[] = [
@@ -310,7 +311,7 @@ export default class Z80 implements CPU {
 		},
 		// ADD HL,BC
 		0x09: () => {
-			this.add16Bit("hl", "bc");
+			this.add16Bit("bc");
 		},
 		// LD A,(BC)
 		0x0A: () => {
@@ -440,14 +441,14 @@ export default class Z80 implements CPU {
 	 */
 	get f(): number {
 		return (
-			(this.flag_s  << 0x80) |
-			(this.flag_z  << 0x40) |
-			(this.flag_5  << 0x20) |
-			(this.flag_h  << 0x10) |
-			(this.flag_3  << 0x08) |
-			(this.flag_pv << 0x04) |
-			(this.flag_n  << 0x02) |
-			(this.flag_c  << 0x01)
+			(this.flag_s  << 7) |
+			(this.flag_z  << 6) |
+			(this.flag_5  << 5) |
+			(this.flag_h  << 4) |
+			(this.flag_3  << 3) |
+			(this.flag_pv << 2) |
+			(this.flag_n  << 1) |
+			(this.flag_c  << 0)
 		);
 	}
 
@@ -460,14 +461,14 @@ export default class Z80 implements CPU {
 	 */
 	set f(n: number) {
 		n &= 0xFF;
-		this.flag_s  = (n & 0x80);
-		this.flag_z  = (n & 0x40);
-		this.flag_5  = (n & 0x20);
-		this.flag_h  = (n & 0x10);
-		this.flag_3  = (n & 0x08);
-		this.flag_pv = (n & 0x04);
-		this.flag_n  = (n & 0x02);
-		this.flag_c  = (n & 0x01);
+		this.flag_s  = (n & 0x80) >> 7;
+		this.flag_z =  (n & 0x40) >> 6;
+		this.flag_5 =  (n & 0x20) >> 5;
+		this.flag_h =  (n & 0x10) >> 4;
+		this.flag_3 =  (n & 0x08) >> 3;
+		this.flag_pv = (n & 0x04) >> 2;
+		this.flag_n =  (n & 0x02) >> 1;
+		this.flag_c =  (n & 0x01) >> 0;
 	}
 
 	/**
@@ -1107,11 +1108,11 @@ export default class Z80 implements CPU {
 		this.alt_de = 0;
 		this.alt_hl = 0;
 
-		this.iff1 = false;
-		this.iff2 = false;
-		this.im = false;
+		this.iff1 = 0;
+		this.iff2 = 0;
+		this.im = 0;
 
-		this.isHalted = false;
+		this.isHalted = 0;
 	}
 
 	/**
@@ -1120,8 +1121,13 @@ export default class Z80 implements CPU {
 	 */
 	private inc8Bit(reg: string) {
 		this[reg]++;
-		this.flag_h = ((this[reg] & 0x0F) === 0) ? 1 : 0;
+
+		this.flag_s = (this[reg] > 0) ? 1 : 0;
 		this.flag_z = (this[reg] === 0) ? 1 : 0;
+		this.flag_h = ((this[reg] & 0x0F) === 0) ? 1 : 0;
+
+		this.flag_pv = (this[reg] === 0x80) ? 1 : 0;
+		
 		this.flag_n = 0;
 	}
 
@@ -1131,8 +1137,15 @@ export default class Z80 implements CPU {
 	 */
 	private dec8Bit(reg: string) {
 		this[reg]--;
-		this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
+
+		this.flag_s = (this[reg] > 0) ? 1 : 0;
 		this.flag_z = (this[reg] === 0) ? 1 : 0;
+		this.flag_5 = this.getBit(this[reg], 5);
+		this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
+		this.flag_3 = this.getBit(this[reg], 3);
+
+		this.flag_pv = (this[reg] === 0x80) ? 1 : 0;
+
 		this.flag_n = 1;
 	}
 
@@ -1155,14 +1168,14 @@ export default class Z80 implements CPU {
 	/**
 	 * add16Bit adds two registers and update the flags
 	 *
-	 * @param {string} rega - Register name
-	 * @param {string} regb - Register name
+	 * @param {string} reg - Register name
 	 */
-	private add16Bit(rega: string, regb: string) {
-		this.flag_n = 1;
-		this.flag_h = ((this[rega] & 0xFFF) + (this[regb] & 0xFFF) > 0xFFF) ? 1 : 0;
-		this.flag_c = (this[rega] + this[regb] > 0xFFFF) ? 1 : 0;
-		this[rega] += this[regb];
+	private add16Bit(reg: string) {
+		this.hl += this[reg];
+		this.flag_n = 0;
+
+		this.flag_h = ((this.hl & 0xFFF) + (this[reg] & 0xFFF) > 0xFFF) ? 1 : 0;
+		this.flag_c = (this.hl + this[reg] > 0xFFFF) ? 1 : 0;
 	}
 
 	/**
@@ -1172,7 +1185,7 @@ export default class Z80 implements CPU {
 	 * @param {number} bit - The bit
 	 */
 	private getBit(x: number, bit: number): number {
-		return x & (1 << bit);
+		return (x & (1 << bit - 1)) > 0 ? 1 : 0;
 	}
 
 	/**
@@ -1181,7 +1194,7 @@ export default class Z80 implements CPU {
 	 * @param {string} reg - Register name
 	 */
 	private rlc(reg: string) {
-		this.flag_c = this.getBit(this[reg], 7);
+		this.flag_c = this.getBit(this[reg], 8);
 		this[reg] = ((this[reg] << 1) & 0xFF) | this.flag_c;
 		this.flag_n = 0;
 		this.flag_h = 0;
@@ -1241,7 +1254,7 @@ export default class Z80 implements CPU {
 	 * @return {boolean} True if the processor has executed a HALT instruction
 	 */
 	halted(): boolean {
-		return this.isHalted;
+		return this.isHalted === 1;
 	}
 
 	/**
