@@ -338,6 +338,16 @@ export default class Z80 implements CPU {
 		0x0F: () => {
 			this.rrc("a");
 		},
+
+		// DJNZ X
+		0x10: () => {
+			this.dec8Bit("b");
+			let label = this.memory.readByte(this.pc);
+
+			if (this.b !== 0) {
+				this.pc = label;
+			}
+		},
 	};
 
 	/**
@@ -1136,15 +1146,15 @@ export default class Z80 implements CPU {
 	 * @param {string} reg - The register name
 	 */
 	private dec8Bit(reg: string) {
-		this[reg]--;
-
-		this.flag_s = (this[reg] > 0) ? 1 : 0;
-		this.flag_z = (this[reg] === 0) ? 1 : 0;
-		this.flag_5 = this.getBit(this[reg], 5);
-		this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
-		this.flag_3 = this.getBit(this[reg], 3);
-
 		this.flag_pv = (this[reg] === 0x80) ? 1 : 0;
+
+		this[reg] -= 1;
+
+		this.flag_s = (this[reg] === 0xFF) ? 1 : 0;
+		this.flag_z = (this[reg] === 0) ? 1 : 0;
+		this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
+		this.flag_5 = this.getBit(this[reg], 5);
+		this.flag_3 = this.getBit(this[reg], 3);
 
 		this.flag_n = 1;
 	}
@@ -1171,11 +1181,12 @@ export default class Z80 implements CPU {
 	 * @param {string} reg - Register name
 	 */
 	private add16Bit(reg: string) {
-		this.hl += this[reg];
-		this.flag_n = 0;
-
 		this.flag_h = ((this.hl & 0xFFF) + (this[reg] & 0xFFF) > 0xFFF) ? 1 : 0;
 		this.flag_c = (this.hl + this[reg] > 0xFFFF) ? 1 : 0;
+		this.flag_5 = this.getBit(this[reg], 5);
+		this.flag_n = 0;
+
+		this.hl += this[reg];
 	}
 
 	/**
@@ -1206,9 +1217,11 @@ export default class Z80 implements CPU {
 	 * @param {string} reg - Register name
 	 */
 	private rrc(reg: string) {
-		this.flag_c = this.getBit(this[reg], 0);
+		this.flag_c = this.getBit(this[reg], 1);
+
 		this[reg] = (this[reg] >> 1) | (this.flag_c << 7);
 
+		this.flag_5 = 1;
 		this.flag_h = 0;
 		this.flag_n = 0;
 	}

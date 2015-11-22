@@ -113,6 +113,13 @@
                 0x0F: function () {
                     _this.rrc("a");
                 },
+                0x10: function () {
+                    _this.dec8Bit("b");
+                    var label = _this.memory.readByte(_this.pc);
+                    if (_this.b !== 0) {
+                        _this.pc = label;
+                    }
+                },
             };
             this.memory = memory;
             this.io = io;
@@ -546,13 +553,13 @@
             this.flag_n = 0;
         };
         Z80.prototype.dec8Bit = function (reg) {
-            this[reg]--;
-            this.flag_s = (this[reg] > 0) ? 1 : 0;
-            this.flag_z = (this[reg] === 0) ? 1 : 0;
-            this.flag_5 = this.getBit(this[reg], 5);
-            this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
-            this.flag_3 = this.getBit(this[reg], 3);
             this.flag_pv = (this[reg] === 0x80) ? 1 : 0;
+            this[reg] -= 1;
+            this.flag_s = (this[reg] === 0xFF) ? 1 : 0;
+            this.flag_z = (this[reg] === 0) ? 1 : 0;
+            this.flag_h = ((this[reg] & 0x0F) === 0x0F) ? 1 : 0;
+            this.flag_5 = this.getBit(this[reg], 5);
+            this.flag_3 = this.getBit(this[reg], 3);
             this.flag_n = 1;
         };
         Z80.prototype.inc16Bit = function (reg) {
@@ -562,10 +569,11 @@
             this[reg]--;
         };
         Z80.prototype.add16Bit = function (reg) {
-            this.hl += this[reg];
-            this.flag_n = 0;
             this.flag_h = ((this.hl & 0xFFF) + (this[reg] & 0xFFF) > 0xFFF) ? 1 : 0;
             this.flag_c = (this.hl + this[reg] > 0xFFFF) ? 1 : 0;
+            this.flag_5 = this.getBit(this[reg], 5);
+            this.flag_n = 0;
+            this.hl += this[reg];
         };
         Z80.prototype.getBit = function (x, bit) {
             return (x & (1 << bit - 1)) > 0 ? 1 : 0;
@@ -577,8 +585,9 @@
             this.flag_h = 0;
         };
         Z80.prototype.rrc = function (reg) {
-            this.flag_c = this.getBit(this[reg], 0);
+            this.flag_c = this.getBit(this[reg], 1);
             this[reg] = (this[reg] >> 1) | (this.flag_c << 7);
+            this.flag_5 = 1;
             this.flag_h = 0;
             this.flag_n = 0;
         };

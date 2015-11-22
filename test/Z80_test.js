@@ -102,7 +102,7 @@ function testRegisters(z80, output) {
     output.regs.forEach((value, i) => {
         it(NAMES_TABLE[i], () => {
             if (NAMES_TABLE[i] === "af") {
-                console.log(z80.f.toString(2));
+                console.log(`${z80.flag_s}${z80.flag_z}${z80.flag_5}${z80.flag_h} ${z80.flag_3}${z80.flag_pv}${z80.flag_n}${z80.flag_c}`);
             }
             assert.equal(z80[NAMES_TABLE[i]], value);
         });
@@ -128,7 +128,8 @@ function testMemory(z80, output, opcode) {
 // ----------- Instructions --------------
 
 
-var tests = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"];
+var tests = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "0a", "0b", "0c", "0d", "0e", "0f",
+             /*"10"*/];
 
 describe("Z80", () => {
     tests.forEach((opcode) => {
